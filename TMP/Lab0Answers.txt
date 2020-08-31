@@ -1,0 +1,53 @@
+Q1 Answer
+
+            XINU MEMORY LAYOUT                  DESCRIPTION
+
+|------------------ 0x0 --------------------|   base address
+
+                text (code)    
+
+|---------------- 0x000195dd ---------------|   etext
+
+              data (initialized)   
+
+|---------------- 0x0001e769 ---------------|   edata
+
+       BSS segment (uninitialized data)  
+          
+|---------------- 0x00026eb8 ---------------|   end
+
+                    ...      
+
+|---------------- 0x00ffdffc ---------------|   stack limit
+
+                    ...                     
+
+|---------------- 0x00ffeee0 ---------------|   current stack pointer of printprocstks
+
+                    ...
+                    ...              
+
+|---------------- 0x00ffeff8 ---------------|   stack base pointer
+
+
+Q2 Answer
+
+                 stack layout                    description
+
+|---------------- 0x00ffefec ---------------|    after calling printtos()
+
+                 ebp of main
+
+|---------------- 0x00ffeff0 ---------------|
+
+          return address of printtos
+
+|---------------- 0x00ffeff4 ---------------|    before calling printtos()
+
+As shown in the above diagram, the difference in stack top address before and after calling printtos() is 8 bytes. The reason is, if the program is going to call the function of printtos(), it has to push the return address of printtos() into the stack. Then it will push the current value of the ebp register into the stack and assign the current value of esp register to ebp register. Each of these two values is 4 byte long and the total difference will then be 8 bytes.
+
+
+
+Q3 Answer
+
+Only if I disable the compiler optimization can I see the local varibles I design in task 3. I think the local variables are stored into CPU registers because of the compiler optimization.

@@ -4,6 +4,7 @@
 #include <kernel.h>
 #include <proc.h>
 #include <stdio.h>
+#include <lab0.h>
 
 static unsigned long	*esp;
 static unsigned long	*ebp;
@@ -16,11 +17,20 @@ static unsigned long	*ebp;
  */
 SYSCALL stacktrace(int pid)
 {
+	int start = get_ctr1000();
+
 	struct pentry	*proc = &proctab[pid];
 	unsigned long	*sp, *fp;
 
-	if (pid != 0 && isbadpid(pid))
+	if (pid != 0 && isbadpid(pid)) {
+		if (is_tracing) {
+			int duration = get_ctr1000() - start;
+			is_process_executed[currpid] = 1;
+			num_execution[currpid][IDX_STACKTRACE] += 1;
+			time_execution[currpid][IDX_STACKTRACE] += duration;
+		}
 		return SYSERR;
+	}
 	if (pid == currpid) {
 		asm("movl %esp,esp");
 		asm("movl %ebp,ebp");
@@ -41,6 +51,12 @@ SYSCALL stacktrace(int pid)
 		fp = (unsigned long *) *sp++;
 		if (fp <= sp) {
 			kprintf("bad stack, fp (%08X) <= sp (%08X)\n", fp, sp);
+			if (is_tracing) {
+				int duration = get_ctr1000() - start;
+				is_process_executed[currpid] = 1;
+				num_execution[currpid][IDX_STACKTRACE] += 1;
+				time_execution[currpid][IDX_STACKTRACE] += duration;
+			}
 			return SYSERR;
 		}
 		kprintf("RET  0x%X\n", *sp);
@@ -49,8 +65,20 @@ SYSCALL stacktrace(int pid)
 	kprintf("MAGIC (should be %X): %X\n", MAGIC, *sp);
 	if (sp != (unsigned long *)proc->pbase) {
 		kprintf("unexpected short stack\n");
+		if (is_tracing) {
+			int duration = get_ctr1000() - start;
+			is_process_executed[currpid] = 1;
+			num_execution[currpid][IDX_STACKTRACE] += 1;
+			time_execution[currpid][IDX_STACKTRACE] += duration;
+		}
 		return SYSERR;
 	}
 #endif
+		if (is_tracing) {
+			int duration = get_ctr1000() - start;
+			is_process_executed[currpid] = 1;
+			num_execution[currpid][IDX_STACKTRACE] += 1;
+			time_execution[currpid][IDX_STACKTRACE] += duration;
+		}
 	return OK;
 }

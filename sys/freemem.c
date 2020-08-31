@@ -4,6 +4,8 @@
 #include <kernel.h>
 #include <mem.h>
 #include <stdio.h>
+#include <lab0.h>
+#include <proc.h>
 
 /*------------------------------------------------------------------------
  *  freemem  --  free a memory block, returning it to memlist
@@ -11,13 +13,23 @@
  */
 SYSCALL	freemem(struct mblock *block, unsigned size)
 {
+	int start = get_ctr1000();
+
 	STATWORD ps;    
 	struct	mblock	*p, *q;
 	unsigned top;
 
 	if (size==0 || (unsigned)block>(unsigned)maxaddr
-	    || ((unsigned)block)<((unsigned) &end))
-		return(SYSERR);
+	    || ((unsigned)block)<((unsigned) &end)) {
+			if (is_tracing) {
+				int duration = get_ctr1000() - start;
+				is_process_executed[currpid] = 1;
+				num_execution[currpid][IDX_FREEMEM] += 1;
+				time_execution[currpid][IDX_FREEMEM] += duration;
+			}
+			return(SYSERR);
+		}
+		
 	size = (unsigned)roundmb(size);
 	disable(ps);
 	for( p=memlist.mnext,q= &memlist;
@@ -27,6 +39,12 @@ SYSCALL	freemem(struct mblock *block, unsigned size)
 	if (((top=q->mlen+(unsigned)q)>(unsigned)block && q!= &memlist) ||
 	    (p!=NULL && (size+(unsigned)block) > (unsigned)p )) {
 		restore(ps);
+		if (is_tracing) {
+			int duration = get_ctr1000() - start;
+			is_process_executed[currpid] = 1;
+			num_execution[currpid][IDX_FREEMEM] += 1;
+			time_execution[currpid][IDX_FREEMEM] += duration;
+		}
 		return(SYSERR);
 	}
 	if ( q!= &memlist && top == (unsigned)block )
@@ -42,5 +60,13 @@ SYSCALL	freemem(struct mblock *block, unsigned size)
 		q->mnext = p->mnext;
 	}
 	restore(ps);
+
+	if (is_tracing) {
+		int duration = get_ctr1000() - start;
+		is_process_executed[currpid] = 1;
+		num_execution[currpid][IDX_FREEMEM] += 1;
+		time_execution[currpid][IDX_FREEMEM] += duration;
+	}
+
 	return(OK);
 }

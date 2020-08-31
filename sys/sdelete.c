@@ -6,6 +6,7 @@
 #include <q.h>
 #include <sem.h>
 #include <stdio.h>
+#include <lab0.h>
 
 /*------------------------------------------------------------------------
  * sdelete  --  delete a semaphore by releasing its table entry
@@ -13,6 +14,8 @@
  */
 SYSCALL sdelete(int sem)
 {
+	int start = get_ctr1000();
+
 	STATWORD ps;    
 	int	pid;
 	struct	sentry	*sptr;
@@ -20,6 +23,12 @@ SYSCALL sdelete(int sem)
 	disable(ps);
 	if (isbadsem(sem) || semaph[sem].sstate==SFREE) {
 		restore(ps);
+		if (is_tracing) {
+			int duration = get_ctr1000() - start;
+			is_process_executed[currpid] = 1;
+			num_execution[currpid][IDX_SDELETE] += 1;
+			time_execution[currpid][IDX_SDELETE] += duration;
+		}
 		return(SYSERR);
 	}
 	sptr = &semaph[sem];
@@ -33,5 +42,13 @@ SYSCALL sdelete(int sem)
 		resched();
 	}
 	restore(ps);
+
+	if (is_tracing) {
+		int duration = get_ctr1000() - start;
+		is_process_executed[currpid] = 1;
+		num_execution[currpid][IDX_SDELETE] += 1;
+		time_execution[currpid][IDX_SDELETE] += duration;
+	}
+
 	return(OK);
 }

@@ -6,6 +6,7 @@
 #include <q.h>
 #include <sem.h>
 #include <stdio.h>
+#include <lab0.h>
 
 /*------------------------------------------------------------------------
  *  signaln -- signal a semaphore n times
@@ -13,12 +14,20 @@
  */
 SYSCALL signaln(int sem, int count)
 {
+	int start = get_ctr1000();
+
 	STATWORD ps;    
 	struct	sentry	*sptr;
 
 	disable(ps);
 	if (isbadsem(sem) || semaph[sem].sstate==SFREE || count<=0) {
 		restore(ps);
+		if (is_tracing) {
+			int duration = get_ctr1000() - start;
+			is_process_executed[currpid] = 1;
+			num_execution[currpid][IDX_SIGNALN] += 1;
+			time_execution[currpid][IDX_SIGNALN] += duration;
+		}
 		return(SYSERR);
 	}
 	sptr = &semaph[sem];
@@ -27,5 +36,13 @@ SYSCALL signaln(int sem, int count)
 			ready(getfirst(sptr->sqhead), RESCHNO);
 	resched();
 	restore(ps);
+
+	if (is_tracing) {
+		int duration = get_ctr1000() - start;
+		is_process_executed[currpid] = 1;
+		num_execution[currpid][IDX_SIGNALN] += 1;
+		time_execution[currpid][IDX_SIGNALN] += duration;
+	}
+
 	return(OK);
 }

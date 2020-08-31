@@ -6,6 +6,7 @@
 #include <i386.h>
 #include <stdio.h>
 #include <q.h>
+#include <lab0.h>
 
 /* Intel 8254-2 clock chip constants */
 
@@ -89,4 +90,8 @@ int clktest()
 	kprintf("from clkint, ctr1000 %d\n", ctr1000);
 	kprintf("from clkint, clktime %d\n", clktime);
         return(OK);
+}
+
+int get_ctr1000() {
+	return ctr1000;
 }
